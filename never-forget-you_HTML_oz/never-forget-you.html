@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Never Forget You</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Playfair+Display:ital,wght@1,500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+:root{--gold:#ffd27a;--pink:#ff8fb1}
+body{overflow:hidden;width:100%;height:100vh;
+  background:radial-gradient(ellipse at 50% 40%,#3a1646 0%,#1b1030 55%,#0c0818 100%);
+  display:flex;justify-content:center;align-items:center}
+#canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+#flores{position:absolute;inset:0;z-index:1;pointer-events:none;animation:zoom 2.5s ease-out}
+@keyframes zoom{from{transform:scale(2.5);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* Flor nomeolvides */
+.flor{position:absolute;width:60px;height:60px;animation:sway 5s ease-in-out infinite alternate}
+.flor span{position:absolute;left:18px;top:2px;width:24px;height:28px;border-radius:50%;
+  background:radial-gradient(circle at 50% 80%,#c6dcff,#6a96f2 70%);
+  transform-origin:12px 28px;box-shadow:0 0 8px rgba(106,150,242,.45)}
+.flor i{position:absolute;left:23px;top:23px;width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle,#fff3b0,var(--gold));box-shadow:0 0 8px var(--gold)}
+@keyframes sway{from{transform:rotate(-8deg) scale(var(--s))}to{transform:rotate(8deg) scale(var(--s))}}
+
+.main{position:absolute;inset:0;z-index:10;display:flex;justify-content:center;align-items:center}
+.reproductor{display:flex;flex-direction:column;align-items:center;text-align:center;
+  width:min(92vw,460px);padding:40px;background:rgba(40,18,60,.55);
+  backdrop-filter:blur(10px);border:1px solid rgba(255,210,122,.25);
+  border-radius:24px;box-shadow:0 0 60px rgba(255,143,177,.2)}
+.reproductor .etiqueta{color:var(--gold);letter-spacing:.3em;text-transform:uppercase;font-size:.75em;margin-bottom:26px}
+
+/* Disco de vinilo */
+.disc{width:min(60vw,280px);height:min(60vw,280px);border-radius:50%;position:relative;
+  background:repeating-radial-gradient(circle,#111 0 2px,#1d1d1d 3px 4px);
+  box-shadow:0 0 30px rgba(0,0,0,.6),0 0 40px rgba(255,143,177,.25);
+  animation:rotation 12s linear infinite;display:flex;justify-content:center;align-items:center}
+.disc::after{content:"";position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0 20%,rgba(255,255,255,.12) 25%,transparent 30% 70%,rgba(255,255,255,.1) 75%,transparent 80%)}
+.disc img{width:62%;height:62%;border-radius:50%;object-fit:cover;border:3px solid var(--gold);z-index:1}
+.disc .hoyo{position:absolute;width:12px;height:12px;border-radius:50%;background:#1b1030;z-index:2;border:2px solid var(--gold)}
+@keyframes rotation{to{transform:rotate(360deg)}}
+
+.info{margin-top:34px}
+.info h1{font-family:'Playfair Display',serif;font-style:italic;font-weight:500;color:#fff;font-size:2.2em;
+  text-shadow:0 0 18px rgba(255,143,177,.6)}
+.info p{color:var(--pink);font-weight:300;font-size:1.2em;margin-top:6px}
+
+.control-btn{margin-top:26px;width:72px;height:72px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--pink),#ff6b9a);color:#fff;display:flex;justify-content:center;align-items:center;
+  position:relative;box-shadow:0 4px 18px rgba(255,107,154,.5);transition:transform .3s,box-shadow .3s}
+.control-btn:hover{transform:scale(1.07);box-shadow:0 4px 26px rgba(255,210,122,.6)}
+.control-btn:active{transform:scale(.95)}
+.control-btn svg{position:absolute;transition:opacity .3s,transform .3s}
+.play-icon{opacity:0;transform:scale(1.5)}
+.pause-icon{opacity:1;transform:scale(1.5)}
+.control-btn.paused .play-icon{opacity:1;transform:scale(1.8)}
+.control-btn.paused .pause-icon{opacity:0;transform:scale(1.2)}
+</style>
+</head>
+<body>
+<!-- CAMBIA el nombre del archivo de audio por el tuyo -->
+<audio id="musicPlayer" loop>
+  <source src="never-forget-you.mp3" type="audio/mp3">
+</audio>
+
+<canvas id="canvas"></canvas>
+<div id="flores"></div>
+
+<div class="main">
+  <div class="reproductor">
+    <p class="etiqueta">Te amo Leonor</p>
+    <div class="disc">
+      <!-- CAMBIA el nombre de la imagen por la tuya -->
+      <img src="mi-imagen.jpg" alt="">
+      <div class="hoyo"></div>
+    </div>
+    <div class="info">
+      <h1>Never Forget You</h1>
+      <p>Noisettes</p>
+    </div>
+    <button id="playPauseBtn" class="control-btn paused" aria-label="Reproducir / pausar">
+      <svg class="play-icon" width="20" height="20" viewBox="0 0 24 24"><path d="M8 5V19L19 12L8 5Z" fill="white"/></svg>
+      <svg class="pause-icon" width="20" height="20" viewBox="0 0 24 24"><path d="M6 4H10V20H6V4ZM14 4H18V20H14V4Z" fill="white"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ---------- Reproductor ----------
+const audio = document.getElementById('musicPlayer');
+const btn = document.getElementById('playPauseBtn');
+const disc = document.querySelector('.disc');
+
+function setPlaying(on){
+  disc.style.animationPlayState = on ? 'running' : 'paused';
+  btn.classList.toggle('paused', !on);
+}
+btn.addEventListener('click', () => {
+  if (audio.paused) { audio.play().then(() => setPlaying(true)).catch(()=>{}); }
+  else { audio.pause(); setPlaying(false); }
+});
+// Intenta autoplay; si el navegador lo bloquea, arranca con el primer clic en cualquier parte
+disc.style.animationPlayState = 'paused';
+audio.play().then(() => setPlaying(true)).catch(() => {
+  document.addEventListener('click', function once(e){
+    if (e.target.closest('#playPauseBtn')) return;
+    audio.play().then(() => setPlaying(true)).catch(()=>{});
+    document.removeEventListener('click', once);
+  });
+});
+
+// ---------- Nomeolvides ----------
+const flores = document.getElementById('flores');
+let n = 0;
+while (n < 45) {
+  const x = Math.random()*100, y = Math.random()*100;
+  if (Math.abs(x-50) < 24 && Math.abs(y-50) < 38) continue; // deja libre el centro
+  const f = document.createElement('div');
+  f.className = 'flor';
+  const s = (0.5 + Math.random()*1.1).toFixed(2);
+  f.style.cssText = `left:${x}%;top:${y}%;--s:${s};opacity:${0.5+Math.random()*0.5};animation-delay:${-Math.random()*5}s;animation-duration:${4+Math.random()*3}s`;
+  for (let i=0;i<5;i++){ const p=document.createElement('span'); p.style.transform=`rotate(${i*72}deg)`; f.appendChild(p); }
+  f.appendChild(document.createElement('i'));
+  flores.appendChild(f);
+  n++;
+}
+
+// ---------- Partículas doradas / rosas que flotan ----------
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const colors = ['#ffd27a','#ff8fb1','#ffe9b8'];
+let particles = [];
+class P {
+  constructor(){ this.reset(true); }
+  reset(first){
+    this.x = Math.random()*canvas.width;
+    this.y = first ? Math.random()*canvas.height : canvas.height + 10;
+    this.r = 1 + Math.random()*2.5;
+    this.vy = 0.2 + Math.random()*0.6;
+    this.vx = (Math.random()-.5)*0.3;
+    this.c = colors[Math.floor(Math.random()*colors.length)];
+    this.a = 0.3 + Math.random()*0.6;
+  }
+  update(){
+    this.y -= this.vy; this.x += this.vx;
+    if (this.y < -10) this.reset(false);
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.globalAlpha = this.a; ctx.fillStyle = this.c;
+    ctx.shadowBlur = 10; ctx.shadowColor = this.c; ctx.fill();
+  }
+}
+function init(){ particles = Array.from({length:90}, () => new P()); }
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; init(); }
+addEventListener('resize', resize);
+resize();
+(function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p => p.update());
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
